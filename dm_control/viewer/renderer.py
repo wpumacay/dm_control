@@ -22,14 +22,15 @@ import abc
 import contextlib
 
 from dm_control.mujoco import wrapper
-from dm_control.mujoco.wrapper.mjbindings import enums
-from dm_control.mujoco.wrapper.mjbindings import mjlib
-from dm_control.mujoco.wrapper.mjbindings import types
+from dm_control.mujoco.wrapper import mjbindings
 from dm_control.viewer import util
 import numpy as np
 import six
 from six.moves import range
 
+enums = mjbindings.enums
+mjlib = mjbindings.mjlib
+types = mjbindings.types
 
 # Fixed camera -1 is the free (unfixed) camera, and each fixed camera has
 # a positive index in range (0, self._model.ncam).
@@ -45,13 +46,10 @@ _INVALID_BODY_INDEX = -1
 _FULL_SCENE_ZOOM_FACTOR = 1.5
 
 # Default render flag settings.
-_DEFAULT_RENDER_FLAGS = [
-    1,  # Enable shadows.
-    0,  # Disable wireframe rendering.
-    1,  # Enable reflections.
-    0,  # Disable fog.
-    1,  # Enable skybox.
-]
+_DEFAULT_RENDER_FLAGS = np.zeros(enums.mjtRndFlag.mjNRNDFLAG, dtype=np.ubyte)
+_DEFAULT_RENDER_FLAGS[enums.mjtRndFlag.mjRND_SHADOW] = 1
+_DEFAULT_RENDER_FLAGS[enums.mjtRndFlag.mjRND_REFLECTION] = 1
+_DEFAULT_RENDER_FLAGS[enums.mjtRndFlag.mjRND_SKYBOX] = 1
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -461,8 +459,10 @@ class SceneCamera(object):
     if not self.is_initialized:
       return -1, None
     viewport_pos = viewport.screen_to_inverse_viewport(screen_pos)
-    grab_world_pos = np.zeros(3)
-    selected_geom_id = mjlib.mjv_select(
+    grab_world_pos = np.empty(3, dtype=np.double)
+    selected_geom_id_arr = np.intc([-1])
+    selected_skin_id_arr = np.intc([-1])
+    selected_body_id = mjlib.mjv_select(
         self._model.ptr,
         self._data.ptr,
         self._options.visualization.ptr,
@@ -470,14 +470,13 @@ class SceneCamera(object):
         viewport_pos[0],
         viewport_pos[1],
         self._scene.ptr,
-        grab_world_pos)
-
-    if selected_geom_id >= 0:
-      selected_body_id = self._model.geom_bodyid[selected_geom_id]
-    else:
+        grab_world_pos,
+        selected_geom_id_arr,
+        selected_skin_id_arr)
+    del selected_geom_id_arr, selected_skin_id_arr  # Unused.
+    if selected_body_id < 0:
       selected_body_id = _INVALID_BODY_INDEX
       grab_world_pos = None
-
     return selected_body_id, grab_world_pos
 
   def render(self, perturbation=None):

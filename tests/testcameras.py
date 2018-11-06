@@ -9,10 +9,10 @@ import enginewrapper
 # Load one task:
 # env = suite.load( domain_name = "humanoid", task_name = "walk" )
 # env = suite.load( domain_name = "walker", task_name = "walk" )
-env = suite.load( domain_name = "cartpole", task_name = "balance" )
+# env = suite.load( domain_name = "cartpole", task_name = "balance" )
 # env = suite.load( domain_name = "acrobot", task_name = "swingup" )
 # env = suite.load( domain_name = "ball_in_cup", task_name = "catch" )
-# env = suite.load( domain_name = "cheetah", task_name = "run" )
+env = suite.load( domain_name = "cheetah", task_name = "run" )
 # env = suite.load( domain_name = "finger", task_name = "spin" )
 # env = suite.load( domain_name = "fish", task_name = "swim" )# needs tweaking : ellipsoid support
 # env = suite.load( domain_name = "hopper", task_name = "stand" )

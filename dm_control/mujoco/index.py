@@ -89,8 +89,6 @@ import abc
 import collections
 import weakref
 
-# Internal dependencies.
-
 from dm_control.mujoco.wrapper import util
 from dm_control.mujoco.wrapper.mjbindings import sizes
 import numpy as np
@@ -582,7 +580,7 @@ class FieldIndexer(object):
 
 
 def struct_indexer(struct, struct_name, size_to_axis_indexer):
-  """Returns a namedtuple with a `FieldIndexer` for each dynamic array field.
+  """Returns an object with a `FieldIndexer` attribute for each dynamic field.
 
   Usage example
 
@@ -598,8 +596,9 @@ def struct_indexer(struct, struct_name, size_to_axis_indexer):
     size_to_axis_indexer: dict that maps size names to `Axis` instances.
 
   Returns:
-    A `namedtuple` with a field for every dynamically sized array field mapping
-      to a `FieldIndexer`.
+    An object with a field for every dynamically sized array field, mapping to a
+    `FieldIndexer`. The returned object is immutable and has an `_asdict`
+    method.
 
   Raises:
     ValueError: If `struct_name` is not recognized.

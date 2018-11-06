@@ -21,8 +21,6 @@ from __future__ import print_function
 
 import collections
 
-# Internal dependencies.
-
 from dm_control import mujoco
 from dm_control.rl import control
 from dm_control.suite import base
@@ -91,7 +89,7 @@ class Cheetah(base.Task):
     """Returns an observation of the state, ignoring horizontal position."""
     obs = collections.OrderedDict()
     # Ignores horizontal position to maintain translational invariance.
-    obs['position'] = physics.data.qpos[1:]
+    obs['position'] = physics.data.qpos[1:].copy()
     obs['velocity'] = physics.velocity()
     return obs
 

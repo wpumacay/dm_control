@@ -20,10 +20,7 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
-
 import os
-
-# Internal dependencies.
 
 from dm_control import mujoco
 from dm_control.rl import control
@@ -31,7 +28,6 @@ from dm_control.suite import base
 from dm_control.suite import common
 from dm_control.utils import containers
 from dm_control.utils import xml_tools
-
 from lxml import etree
 import numpy as np
 from six.moves import range
@@ -174,8 +170,8 @@ def _make_model(n_bodies,
     raise ValueError('At most 1 actuator per body.')
 
   file_path = os.path.join(os.path.dirname(__file__), 'lqr.xml')
-  xml_file = resources.GetResourceAsFile(file_path)
-  mjcf = xml_tools.parse(xml_file)
+  with resources.GetResourceAsFile(file_path) as xml_file:
+    mjcf = xml_tools.parse(xml_file)
   parent = mjcf.find('./worldbody')
   actuator = etree.SubElement(mjcf.getroot(), 'actuator')
   tendon = etree.SubElement(mjcf.getroot(), 'tendon')

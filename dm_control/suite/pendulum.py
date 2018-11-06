@@ -21,15 +21,12 @@ from __future__ import print_function
 
 import collections
 
-# Internal dependencies.
-
 from dm_control import mujoco
 from dm_control.rl import control
 from dm_control.suite import base
 from dm_control.suite import common
 from dm_control.utils import containers
 from dm_control.utils import rewards
-
 import numpy as np
 
 
@@ -64,7 +61,7 @@ class Physics(mujoco.Physics):
 
   def angular_velocity(self):
     """Returns the angular velocity of the pole."""
-    return self.named.data.qvel['hinge']
+    return self.named.data.qvel['hinge'].copy()
 
   def pole_orientation(self):
     """Returns both horizontal and vertical components of pole frame."""

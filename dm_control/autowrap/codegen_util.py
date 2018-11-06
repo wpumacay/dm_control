@@ -23,7 +23,6 @@ import collections
 import keyword
 import re
 
-# Internal dependencies.
 import six
 from six.moves import builtins
 
@@ -111,7 +110,7 @@ def mangle_struct_typename(s):
 
 def mangle_comment(s):
   """Strip extraneous whitespace, add full-stops at end of each line."""
-  if not isinstance(s, str):
+  if not isinstance(s, six.string_types):
     return "\n".join(mangle_comment(line) for line in s)
   elif not s:
     return "<no header comment found>."

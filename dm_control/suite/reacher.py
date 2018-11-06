@@ -21,8 +21,6 @@ from __future__ import print_function
 
 import collections
 
-# Internal dependencies.
-
 from dm_control import mujoco
 from dm_control.rl import control
 from dm_control.suite import base
@@ -30,7 +28,6 @@ from dm_control.suite import common
 from dm_control.suite.utils import randomizers
 from dm_control.utils import containers
 from dm_control.utils import rewards
-
 import numpy as np
 
 SUITE = containers.TaggedTasks()
@@ -68,9 +65,9 @@ class Physics(mujoco.Physics):
   """Physics simulation with additional features for the Reacher domain."""
 
   def finger_to_target(self):
-    """Returns the vector from target to finger in global coordinate."""
-    return (self.named.data.geom_xpos['target'] -
-            self.named.data.geom_xpos['finger'])
+    """Returns the vector from target to finger in global coordinates."""
+    return (self.named.data.geom_xpos['target', :2] -
+            self.named.data.geom_xpos['finger', :2])
 
   def finger_to_target_dist(self):
     """Returns the signed distance between the finger and target surface."""

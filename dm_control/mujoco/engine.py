@@ -68,7 +68,7 @@ _GRID_POSITIONS = {
 
 Contexts = collections.namedtuple('Contexts', ['gl', 'mujoco'])
 Selected = collections.namedtuple(
-    'Selected', ['body', 'geom', 'world_position'])
+    'Selected', ['body', 'geom', 'skin', 'world_position'])
 NamedIndexStructs = collections.namedtuple(
     'NamedIndexStructs', ['model', 'data'])
 Pose = collections.namedtuple(
@@ -442,11 +442,11 @@ class Physics(_control.Physics):
   # Named views of simulation data.
 
   def control(self):
-    """Returns MuJoCo actuation vector as defined in the model."""
-    return self.data.ctrl[:]
+    """Returns a copy of the control signals for the actuators."""
+    return self.data.ctrl[:].copy()
 
   def activation(self):
-    """Returns the internal states of 'filter' or 'integrator' actuators.
+    """Returns a copy of the internal states of actuators.
 
     For details, please refer to
     http://www.mujoco.org/book/computation.html#geActuation
@@ -454,19 +454,19 @@ class Physics(_control.Physics):
     Returns:
       Activations in a numpy array.
     """
-    return self.data.act[:]
+    return self.data.act[:].copy()
 
   def state(self):
     """Returns the full physics state. Alias for `get_physics_state`."""
     return np.concatenate(self._physics_state_items())
 
   def position(self):
-    """Returns generalized positions (system configuration)."""
-    return self.data.qpos[:]
+    """Returns a copy of the generalized positions (system configuration)."""
+    return self.data.qpos[:].copy()
 
   def velocity(self):
-    """Returns generalized velocities."""
-    return self.data.qvel[:]
+    """Returns a copy of the generalized velocities."""
+    return self.data.qvel[:].copy()
 
   def timestep(self):
     """Returns the simulation timestep."""
@@ -531,7 +531,7 @@ class Camera(object):
     self._physics = physics
 
     # Variables corresponding to structs needed by Mujoco's rendering functions.
-    self._scene = wrapper.MjvScene()
+    self._scene = wrapper.MjvScene(model=physics.model)
     self._scene_option = wrapper.MjvOption()
 
     self._perturb = wrapper.MjvPerturb()
@@ -669,7 +669,9 @@ class Camera(object):
     aspect_ratio = self._width / self._height
     cursor_x, cursor_y = cursor_position
     pos = np.empty(3, np.double)
-    selected_geom = mjlib.mjv_select(
+    geom_id_arr = np.intc([-1])
+    skin_id_arr = np.intc([-1])
+    body_id = mjlib.mjv_select(
         self._physics.model.ptr,
         self._physics.data.ptr,
         self._scene_option.ptr,
@@ -677,16 +679,31 @@ class Camera(object):
         cursor_x,
         cursor_y,
         self._scene.ptr,
-        pos)
+        pos,
+        geom_id_arr,
+        skin_id_arr)
+    [geom_id] = geom_id_arr
+    [skin_id] = skin_id_arr
 
-    if selected_geom == -1:  # Nothing was selected.
-      return Selected(body=None, geom=None, world_position=None)
+    # Validate IDs
+    if body_id != -1:
+      assert 0 <= body_id < self._physics.model.nbody
     else:
-      assert 0 <= selected_geom < self._physics.model.ngeom
-      selected_body = self._physics.model.geom_bodyid[selected_geom]
-      assert 0 <= selected_body < self._physics.model.nbody
-      return Selected(
-          body=selected_body, geom=selected_geom, world_position=pos)
+      body_id = None
+    if geom_id != -1:
+      assert 0 <= geom_id < self._physics.model.ngeom
+    else:
+      geom_id = None
+    if skin_id != -1:
+      assert 0 <= skin_id < self._physics.model.nskin
+    else:
+      skin_id = None
+
+    if all(id_ is None for id_ in (body_id, geom_id, skin_id)):
+      pos = None
+
+    return Selected(
+        body=body_id, geom=geom_id, skin=skin_id, world_position=pos)
 
 
 class MovableCamera(Camera):

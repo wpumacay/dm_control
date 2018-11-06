@@ -21,8 +21,6 @@ from __future__ import print_function
 
 import collections
 
-# Internal dependencies.
-
 from dm_control import mujoco
 from dm_control.rl import control
 from dm_control.suite import base
@@ -30,7 +28,6 @@ from dm_control.suite import common
 from dm_control.suite.utils import randomizers
 from dm_control.utils import containers
 from dm_control.utils import rewards
-
 import numpy as np
 
 _DEFAULT_TIME_LIMIT = 25
@@ -110,11 +107,11 @@ class Physics(mujoco.Physics):
 
   def center_of_mass_position(self):
     """Returns position of the center-of-mass."""
-    return self.named.data.subtree_com['torso']
+    return self.named.data.subtree_com['torso'].copy()
 
   def center_of_mass_velocity(self):
     """Returns the velocity of the center-of-mass."""
-    return self.named.data.sensordata['torso_subtreelinvel']
+    return self.named.data.sensordata['torso_subtreelinvel'].copy()
 
   def torso_vertical_orientation(self):
     """Returns the z-projection of the torso orientation matrix."""
@@ -122,7 +119,7 @@ class Physics(mujoco.Physics):
 
   def joint_angles(self):
     """Returns the state without global orientation or position."""
-    return self.data.qpos[7:]  # Skip the 7 DoFs of the free root joint.
+    return self.data.qpos[7:].copy()  # Skip the 7 DoFs of the free root joint.
 
   def extremities(self):
     """Returns end effector positions in egocentric frame."""
